@@ -1,10 +1,14 @@
 package com.in28minutes.rest.webservices.restful_web_services.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 
 
 /*
@@ -15,17 +19,29 @@ import java.time.LocalDate;
     PATCH - updates the part of the resource
     DELETE - deletes the resource
 */
-public class User {
+
+@Entity(name = "user_details")
+public class User { // user is a keyword in H2
 
 
+    protected User() {
+    }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Size(min = 3,message = "The length should be more than 2")
+//    @JsonProperty("user_name")
     private String name;
 
     @Past(message = "The birth date should be in the past")
+//    @JsonProperty("user_birth_date")
     private LocalDate birthDate;
+
+//    @OneToMany(mappedBy = "user")
+//    @JsonIgnore
+//    private List<Post> posts;
 
     public User(Integer id, String name, LocalDate birthDate) {
         this.id = id;

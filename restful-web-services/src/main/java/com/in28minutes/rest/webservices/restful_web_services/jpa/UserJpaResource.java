@@ -1,7 +1,9 @@
-package com.in28minutes.rest.webservices.restful_web_services.user;
+package com.in28minutes.rest.webservices.restful_web_services.jpa;
 
+import com.in28minutes.rest.webservices.restful_web_services.user.User;
+import com.in28minutes.rest.webservices.restful_web_services.user.UserDaoService;
+import com.in28minutes.rest.webservices.restful_web_services.user.UserNotFoundException;
 import jakarta.validation.Valid;
-import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -9,10 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.List;
+import java.util.Optional;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /*
     Request Methods for REST API
@@ -24,29 +27,29 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 */
 
 @RestController
-public class UserResource {
+public class UserJpaResource {
 
-    public UserDaoService userDaoService;
+    public UserRepository userRepository;
 
-    public UserResource(UserDaoService userDaoService){
-        this.userDaoService = userDaoService;
+    public UserJpaResource(UserRepository userRepository){
+        this.userRepository = userRepository;
     }
 
-    @GetMapping("/users")
+    @GetMapping("/jpa/users")
     public List<User> retrieveAllUsers(){
-        return userDaoService.findALl();
+        return userRepository.findAll();
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/jpa/users/{id}")
     public EntityModel<User> retrieveUser(@PathVariable int id){
-        User user = userDaoService.findOne(id);
+        Optional<User> user = userRepository.findById(id);
 
-        if(user == null){
+        if(user.isEmpty()){
             // 404 custom exception has been created
             throw new UserNotFoundException("id: " + id);
         }
 
-        EntityModel<User> entityModel = EntityModel.of(user);
+        EntityModel<User> entityModel = EntityModel.of(user.get());
 
         WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).retrieveAllUsers());
         entityModel.add(link.withRel("all-users"));
@@ -54,14 +57,14 @@ public class UserResource {
         return entityModel;
     }
 
-    @DeleteMapping("/users/{id}")
+    @DeleteMapping("/jpa/users/{id}")
     public void deleteUser(@PathVariable int id){
-       userDaoService.DeleteById(id);
+        userRepository.deleteById(id);
     }
 
-    @PostMapping("/users")
+    @PostMapping("/jpa/users")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user){
-        User newuser = userDaoService.save(user);
+        User newuser = userRepository.save(user);
 
         // uri gets you the link of the currently saved user.
         // /users/4 => /users/{id} , user.getID
